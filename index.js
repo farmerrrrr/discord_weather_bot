@@ -1,8 +1,10 @@
 // 1. 주요 클래스 가져오기
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const { token, weather_token, weather_url } = require('./config.json');
 const request = require('request');
 const xml2js = require('xml2js');
+const path = require('node:path');
+const fs = require('node:fs');
 
 const parseXML = (xml) => {
     return new Promise((resolve, reject) => {
@@ -72,7 +74,7 @@ client.on('messageCreate', (message) => {
                     // 여기서 parsedData를 이용해 필요한 정보를 추출합니다.
                     // 예시: 기온, 날씨 상태 등을 출력
                     const temperature = parsedData.response.body[0].items[0].item[0].obsrValue[0];
-                    message.channel.send(`현재 온도: ${temperature}°C`);
+                    message.channel.send(`현재 서울 온도: ${temperature}°C`);
                 } catch (err) {
                     console.error(err);
                     message.channel.send('날씨 정보를 파싱하는 데 문제가 발생했습니다.');
@@ -82,5 +84,29 @@ client.on('messageCreate', (message) => {
     }
 })
 
-// 5. 시크릿키(토큰)을 통해 봇 로그인 실행
+// 5. 슬래시 커맨드
+// 커맨드 등록
+client.commands = new Collection();
+
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+// commands 폴더의 js 파일을 이름과 함께 등록
+for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+    client.commands.set(command.data.name, command);
+}
+
+//커맨드 입력 이벤트가 들어온다면
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return; //기존 채팅 커맨드는 제외
+
+    // /ping 입력될 경우 pong으로 대답하기
+	if (interaction.commandName === 'ping') {
+		await interaction.reply({ content: 'Pong' });
+	}
+});
+
+// *. 시크릿키(토큰)을 통해 봇 로그인 실행
 client.login(token);
