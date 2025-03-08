@@ -3,6 +3,7 @@ const { weather_token, weather_url } = require('../config.json');
 //const request = require('request');
 //const xml2js = require('xml2js');
 const { makeRequest } = require('../apiRequest');
+const logger = require('../logger')
 
 /*
 const parseXML = (xml) => {
@@ -37,13 +38,20 @@ module.exports = {
         
         const fullUrl = weather_url + queryParams;
 
+        logger.logApiRequest(fullUrl);
+
         try {
+            logger.logInfo('날씨 명령어 실행 중...');
             const weatherInfo = await makeRequest(fullUrl);
-            const temperature = weatherInfo.response.body[0].items[0].item[0].obsrValue[0];
+            const temperature = weatherInfo.response.body[0].items[0].item[3].obsrValue[0];
+            // body[0].items[0].item[[0: PTY], [1:REH], [2:RN1], [3:T1H(기온)], [4: UUU], [5: VEC], [6: VVV], [7: WSD]]
+            logger.logInfo(`추출된 온도 정보: ${temperature}°C`);
+            
             // message.channel.send(`현재 서울 온도: ${temperature}°C`);
             interaction.reply(`현재 서울 온도: ${temperature}°C`); 
         } catch (err) {
-            console.error(err);
+            //console.error(err);
+            logger.logError('날씨 정보를 가져오는 중 오류 발생', err);
             message.channel.send('날씨 정보를 파싱하는 데 문제가 발생했습니다.');
         }
         /*
