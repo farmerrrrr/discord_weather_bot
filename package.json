@@ -9,6 +9,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "discord.js": "^14.18.0"
+    "axios": "^1.8.1",
+    "discord.js": "^14.18.0",
+    "request": "^2.88.2",
+    "xml2js": "^0.6.2"
   }
 }
