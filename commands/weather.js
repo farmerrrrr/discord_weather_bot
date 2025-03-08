@@ -1,8 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { weather_token, weather_url } = require('../config.json');
-const request = require('request');
-const xml2js = require('xml2js');
+//const request = require('request');
+//const xml2js = require('xml2js');
+const { makeRequest } = require('../apiRequest');
 
+/*
 const parseXML = (xml) => {
     return new Promise((resolve, reject) => {
         xml2js.parseString(xml, (err, result) => {
@@ -11,6 +13,7 @@ const parseXML = (xml) => {
         });
     });
 };
+*/
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,6 +35,18 @@ module.exports = {
             + `&base_date=${base_date}&base_time=${base_time}`
             + `&nx=${nx}&ny=${ny}`;
         
+        const fullUrl = weather_url + queryParams;
+
+        try {
+            const weatherInfo = await makeRequest(fullUrl);
+            const temperature = weatherInfo.response.body[0].items[0].item[0].obsrValue[0];
+            // message.channel.send(`현재 서울 온도: ${temperature}°C`);
+            interaction.reply(`현재 서울 온도: ${temperature}°C`); 
+        } catch (err) {
+            console.error(err);
+            message.channel.send('날씨 정보를 파싱하는 데 문제가 발생했습니다.');
+        }
+        /*
         request({
             url: weather_url + queryParams,
             method: 'GET'
@@ -54,6 +69,7 @@ module.exports = {
                 }
             }
         });    
+        */
     },
 };
 
